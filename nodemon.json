@@ -1,0 +1,5 @@
+{
+  "execMap": {
+    "ts": "tsc -b && node dist/index.js"
+  }
+}
