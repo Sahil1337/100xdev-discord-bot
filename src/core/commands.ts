@@ -7,7 +7,8 @@ import {
 } from "discord.js";
 
 export interface Command {
-  names: string[];
+  name: string;
+  description: string;
   requireClientPerms: PermissionsString[];
   autocomplete?(
     intr: AutocompleteInteraction,

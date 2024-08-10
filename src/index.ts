@@ -1,17 +1,28 @@
 import "dotenv/config";
-import { Client, Events, GatewayIntentBits } from "discord.js";
+import { CommandInteraction, Events, GatewayIntentBits } from "discord.js";
+import { Bot } from "./core/client";
+import { deployCommands } from "./utils/deploy-commands";
+import { Command } from "./core/commands";
 
-const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-
-// Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Bot({ intents: [GatewayIntentBits.Guilds] });
+client.init();
 
 // When the client is ready, run this code (only once).
-// The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-// It makes some properties non-nullable.
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient: Bot) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+  await deployCommands(readyClient);
 });
 
-// Log in to Discord with your client's token
-client.login(BOT_TOKEN);
+// Handle interactionCreate event from client
+client.on(Events.InteractionCreate, async (interaction: CommandInteraction) => {
+  try {
+    if (!interaction.isCommand()) return;
+
+    const { commandName } = interaction;
+    const command = client.commands.get(commandName) as Command;
+
+    await command.execute(interaction);
+  } catch (err: unknown) {
+    console.log(`Failed to execute command: ${(err as Error).message}`);
+  }
+});
